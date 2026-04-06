@@ -78,7 +78,8 @@ Rails.application.routes.draw do
   get 'errors/not_found'
   get 'errors/internal_server_error'
   get 'dashboard/index'
-  get 'logout' => 'dashboard#logout'
+  get 'dashboard'        => 'dashboard#index', as: :classic_dashboard
+  get 'logout'           => 'dashboard#logout'
 
   # analytics request appears in the access logs and google analytics
   get 'analytics/:type' => proc { [204, {}, ['']] }, :as => 'analytics'
@@ -89,7 +90,8 @@ Rails.application.routes.draw do
 
   get 'apps/restart' => 'apps#restart' if Configuration.app_sharing_enabled?
 
-  root 'dashboard#index'
+  get  'appverse' => 'appverse#index', as: :appverse
+  root 'appverse#index'
 
   # App administration
   scope 'admin/:type', constraints: Authz::AppDeveloperConstraint do
