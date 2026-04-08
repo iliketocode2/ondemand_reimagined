@@ -40,6 +40,9 @@ export function pollAndReplace(url, delay, id, callback, continuePolling = () =>
         focusedId = focusedElement.id;
       }
       replaceHTML(id, html);
+      if (typeof window.initCollapsibleAppCards === 'function') {
+        window.initCollapsibleAppCards();
+      }
       const newFocus = document.getElementById(focusedId);
       if (newFocus) {
         newFocus.focus();

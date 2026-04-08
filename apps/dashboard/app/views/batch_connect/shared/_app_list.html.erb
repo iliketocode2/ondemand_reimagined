@@ -1,6 +1,6 @@
-<div class="card <%= local_assigns.fetch(:style, "system-and-shared-apps-header") %>">
-  <div class="card-header"><%= title %></div>
-  <div class="list-group list-group-flush">
+<div class="card collapsible-app-card <%= local_assigns.fetch(:style, "system-and-shared-apps-header") %>">
+  <div class="card-header" tabindex="0" role="button" aria-expanded="false"><%= title %></div>
+  <div class="list-group list-group-flush" style="display: none;">
   <%-
     OodAppGroup.groups_for(
       apps: apps,
@@ -12,7 +12,10 @@
       content_tag(
         "p",
         app_group.title,
-        class: "list-group-item mb-0 header border-0"
+        class: "list-group-item mb-0 header border-0",
+        tabindex: "0",
+        role: "button",
+        "aria-expanded": "false"
       ) unless app_group.title.blank?
     %>
     <%=
@@ -29,3 +32,58 @@
   <%- end -%>
   </div>
 </div>
+
+<script>
+  (function() {
+    var uninitCards = document.querySelectorAll('.collapsible-app-card:not([data-initialized])');
+    if (!uninitCards.length) return;
+    // Initialize the last uninitialized card (the one just rendered)
+    var card = uninitCards[uninitCards.length - 1];
+    card.dataset.initialized = 'true';
+
+    var header = card.querySelector('.card-header');
+    var listGroup = card.querySelector('.list-group');
+    if (!header || !listGroup) return;
+
+    var subHeaders = Array.from(listGroup.querySelectorAll('.list-group-item.header'));
+
+    function updateSubcategoryVisibility() {
+      if (!subHeaders.length) return;
+      var currentOpen = false;
+      Array.from(listGroup.children).forEach(function(item) {
+        if (item.classList.contains('header')) {
+          currentOpen = item.classList.contains('open');
+        } else {
+          item.style.display = currentOpen ? '' : 'none';
+        }
+      });
+    }
+
+    function toggleCard() {
+      var isOpen = card.classList.toggle('open');
+      header.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+      listGroup.style.display = isOpen ? '' : 'none';
+      if (isOpen) updateSubcategoryVisibility();
+    }
+
+    header.addEventListener('click', toggleCard);
+    header.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleCard(); }
+    });
+
+    subHeaders.forEach(function(subHeader) {
+      function toggleSection() {
+        var isOpen = subHeader.classList.toggle('open');
+        subHeader.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        updateSubcategoryVisibility();
+      }
+      subHeader.addEventListener('click', toggleSection);
+      subHeader.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleSection(); }
+      });
+    });
+
+    // Ensure items under collapsed subcategory headers are hidden on init
+    updateSubcategoryVisibility();
+  })();
+</script>

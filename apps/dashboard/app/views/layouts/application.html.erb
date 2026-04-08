@@ -118,5 +118,64 @@
 
   <%= render "layouts/footer" %>
   <div id="aria_live_region" class="visually-hidden" aria-live="polite"></div>
+
+  <script nonce="<%= content_security_policy_nonce %>">
+    window.initCollapsibleAppCards = function() {
+      document.querySelectorAll('.collapsible-app-card:not([data-initialized])').forEach(function(card) {
+        card.dataset.initialized = 'true';
+
+        var header = card.querySelector('.card-header');
+        var listGroup = card.querySelector('.list-group');
+        if (!header || !listGroup) return;
+
+        var subHeaders = Array.from(listGroup.querySelectorAll('.list-group-item.header'));
+
+        function updateSubcategoryVisibility() {
+          if (!subHeaders.length) return;
+          var currentOpen = false;
+          Array.from(listGroup.children).forEach(function(item) {
+            if (item.classList.contains('header')) {
+              currentOpen = item.classList.contains('open');
+            } else {
+              item.style.display = currentOpen ? '' : 'none';
+            }
+          });
+        }
+
+        function toggleCard() {
+          var isOpen = card.classList.toggle('open');
+          header.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+          listGroup.style.display = isOpen ? '' : 'none';
+          if (isOpen) updateSubcategoryVisibility();
+        }
+
+        // Enforce collapsed state and hide sub-items on (re-)init
+        card.classList.remove('open');
+        listGroup.style.display = 'none';
+        header.setAttribute('aria-expanded', 'false');
+        updateSubcategoryVisibility();
+
+        header.addEventListener('click', toggleCard);
+        header.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleCard(); }
+        });
+
+        subHeaders.forEach(function(subHeader) {
+          function toggleSection() {
+            var isOpen = subHeader.classList.toggle('open');
+            subHeader.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+            updateSubcategoryVisibility();
+          }
+          subHeader.addEventListener('click', toggleSection);
+          subHeader.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleSection(); }
+          });
+        });
+      });
+    };
+
+    document.addEventListener('DOMContentLoaded', window.initCollapsibleAppCards);
+    document.addEventListener('turbo:load', window.initCollapsibleAppCards);
+  </script>
 </body>
 </html>
